@@ -14,6 +14,7 @@ mars = mongo.db.mars
 def index():
   
     mars = mongo.db.mars.find_one()
+    # print(mars)
     # Return the template with the data passed in
     return render_template('index.html', mars=mars)
 
@@ -21,9 +22,10 @@ def index():
 # The route should redirect back to the base route '/' with a code 302.
 @app.route("/scrape")
 def scraper():
+    # insert the scraped image into the MongoDB
+    mars = scrape_mars.scrape()
+    mars.update({}, mars, upsert=True)
 
-    mars_data = scrape_mars.image()
-    mars.update({}, mars_data, upsert=True)
     return redirect("/", code=302)
 
 if __name__ == "__main__":

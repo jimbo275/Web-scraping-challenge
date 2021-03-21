@@ -9,49 +9,41 @@ from bs4 import BeautifulSoup
 import pandas as pd
 from webdriver_manager.chrome import ChromeDriverManager
 from urllib.parse import urljoin, urldefrag
+import time
 
-def image():
-    # Get NASA news
+# Get NASA news
 # Import Splinter, BeautifulSoup, and Pandas
 
-# def news():
-#     news = {}
-# # Path to chromedriver
-#     executable_path = {'executable_path': ChromeDriverManager().install()}
-#     browser = Browser('chrome', **executable_path, headless=True)
+def scrape():
+ # Path to chromedriver
+    executable_path = {'executable_path': ChromeDriverManager().install()}
+    browser = Browser('chrome', **executable_path, headless=True)
 
-# # Visit the mars nasa news site
-#     url = 'https://mars.nasa.gov/news/'
-#     browser.visit(url)
-# # Optional delay for loading the page
+# Visit the mars nasa news site
+    url = 'https://mars.nasa.gov/news/'
+    browser.visit(url)
+# Optional delay for loading the page
+    time.sleep(10)
+# Convert the browser html to a soup object and then quit the browser
+    html = browser.html
+    soup = BeautifulSoup(html, 'html.parser')
 
-# # Convert the browser html to a soup object and then quit the browser
-#     html = browser.html
+# .find() the content title and save it as `news_title`
+    news_title = soup.find_all('div', class_='content_title')[1].find(target="_self").text
 
-#     soup = BeautifulSoup(html, 'html.parser')
+# .find() the paragraph text
+    para_texts = soup.find_all('div', class_="article_teaser_body")[1].text
+# quit the browser so it doesn't stay open
+    browser.quit()
 
-# # .find() the content title and save it as `news_title`
-#     news_title = soup.find_all('div', class_='content_title')[1].find(target="_self").text
 
-# # .find() the paragraph text
-#     para_texts = soup.find_all('div', class_="article_teaser_body")[1].text
-
-#     browser.quit()
-
-#     news["title"] = news_title
-#     news["paragraph"] = para_texts
-
-# return news
 # Get JPL space image
 # This library enables us to join relative urls to a root url to create an absolute url
 
-
     # Visit JPL space images Mars URL 
-    executable_path = {'executable_path': ChromeDriverManager().install()}
-    browser = Browser('chrome', **executable_path, headless=True)
     url = 'https://data-class-jpl-space.s3.amazonaws.com/JPL_Space/index.html'
     browser.visit(url)
-
+    time.sleep(10)
     # Find the more info button and click that. 
     try:
         browser.links.find_by_partial_text('FULL IMAGE').click()
@@ -70,58 +62,60 @@ def image():
     # Use the base url to create an absolute url. Use urldefrag and urljoin to create a url and remove any extra folders in the filepath. Then select the first element in the resulting list    
     featured_image_url = urldefrag(urljoin(url, rel_url))[0]
 
-    return {"url": featured_image_url}
-# # Import Mars facts
-# # Create a dataframe from the space-facts.com mars page
-#     url = 'https://space-facts.com/mars/'
-#     tables = pd.read_html(url)
 
-#     mars_df = tables[1].set_index("Mars - Earth Comparison")
+# Import Mars facts
+# Create a dataframe from the space-facts.com mars page
 
-# # clean the dataframe and export to HTML
-#     mars_df.replace('\n', '')
-#     mars_html = mars_df.to_html('mars.html')
+    url = 'https://space-facts.com/mars/'
+    tables = pd.read_html(url)
 
-# # Get hemisphere data
-# # visit the USGS astrogeology page for hemisphere data from Mars
-#     executable_path = {'executable_path': ChromeDriverManager().install()}
-#     browser = Browser('chrome', **executable_path, headless=True)
-#     url = 'https://astrogeology.usgs.gov/search/results?q=hemisphere+enhanced&k1=target&v1=Mars'
-#     browser.visit(url)
+    mars_df = tables[1].set_index("Mars - Earth Comparison")
 
-# # First, get a list of all of the hemispheres
-#     hemi_list = []
-#     html = browser.html
-#     soup = BeautifulSoup(html, 'lxml')
-#     hemis = soup.find_all('h3')
-#     for hemi in hemis:
-#         hemi_list.append(hemi.text)
-
-#     browser.quit()
-# # Next, loop through those links, click the link, find the sample anchor, return the href
-# # Create a unique list of relative links using the set function. Do this because the same relative link is listed twice on the page. 
-#     link_list = set()
-#     hemi_names = soup.find_all('a', class_ ="itemLink product-item")
-#     for val in enumerate(hemi_names):
-#         link_list.add(val['href'])
-
-# #convert the resulting set into a list and then sort them to get the links in order
-#     sorted_link_list = list(sorted(link_list))
-
-#     def make_url(stub: str) -> str:
-#         _,_,_, planet, probe, location = stub.split('/')
-#         return f'https://astropedia.astrogeology.usgs.gov/download/{planet}/{probe}/{location}.tif/full.jpeg'
+# clean the dataframe and export to HTML
+    mars_df.replace('\n', '')
+    mars_html = mars_df.to_html('mars.html',index=False)
 
 
-# # Use a dictionary comprehrension to build the dictionary for the titles and their corresponding urls
-#     title_dict = [{'img_url': make_url(href), 'title': title} for title, href in zip(hemi_list, sorted_link_list)]
+# Get hemisphere data
+# visit the USGS astrogeology page for hemisphere data from Mars
+    # visit the USGS astrogeology page for hemisphere data from Mars
+    url = 'https://astrogeology.usgs.gov/search/results?q=hemisphere+enhanced&k1=target&v1=Mars'
+    browser.visit(url)
+    time.sleep(10)
+    html = browser.html
+    soup = BeautifulSoup(html, 'lxml')
+
+# Build the list of enhanced urls
+    hemi_image_urls = []
+    enhanced_url_list = []
+    hemi_all = soup.find_all('div', class_='item')
+
+    for hemi in hemi_all:
+        title = hemi.find('h3').text
+        enhanced_url = hemi.a['href']
+        enhanced_url = f'https://astrogeology.usgs.gov{enhanced_url}'
+        enhanced_url_list.append(enhanced_url)
     
-#     listing = {}
-#     listing["headline"] = news_title
-#     listing["paragraph"] = para_texts
-#     listing["featured_image"] = featured_image_url
-#     listing["stats"] = mars_html
-#     listing["hemi_list"] = hemi_list
-#     listing["titles"] = title_dict
 
-#     return listing
+
+    # Build a list of dictionaries with the title and images    
+    for enh_url in enhanced_url_list:   
+        browser.visit(enh_url)
+        time.sleep(10)
+        html = browser.html
+        soup = BeautifulSoup(html, "html.parser")
+        org_hemi_url = soup.find('div', class_='downloads').a['href']
+        hemi_image_urls.append({"title": title, "img_url": org_hemi_url})
+    
+    scrape_dict = {
+        "title": news_title,
+        "para": para_texts,
+        "featured_pic": featured_image_url,
+        "html_tables": mars_html,
+        "images": hemi_image_urls
+    }
+
+
+    browser.quit()
+    return scrape_dict
+

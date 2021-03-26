@@ -13,18 +13,19 @@ mars = mongo.db.mars
 @app.route('/')
 def index():
   
-    mars = mongo.db.mars.find_one()
+    scrape_dict = mongo.db.mars.find_one()
+     
     # print(mars)
     # Return the template with the data passed in
-    return render_template('index.html', mars=mars)
+    return render_template('index.html', mars=scrape_dict)
 
 # Create a '/scrape' route that will create the mars collection, run your scrape() function from scrape_mars, and update the mars collection in the database
 # The route should redirect back to the base route '/' with a code 302.
 @app.route("/scrape")
 def scraper():
     # insert the scraped image into the MongoDB
-    mars = scrape_mars.scrape()
-    mars.update({}, mars, upsert=True)
+    scrape_dict = scrape_mars.scrape()
+    mars.update({}, scrape_dict, upsert=True)
 
     return redirect("/", code=302)
 

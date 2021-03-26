@@ -1,3 +1,4 @@
+Cr
 <!DOCTYPE html>
 <html lang="en">
 <html>
@@ -29,13 +30,13 @@
         <div class="row">
             <div class="col-md-8">
                 <h3>Featured Mars Image</h3>
-                <img src='{{ mars.featured_image_url }}' alt='featured mars image' style="width:100%; height:100%">
+                <img src='{{ mars.featured_pic }}' alt='featured mars image' style="width:100%; height:100%">
                 <p>{{ mars.news_p }}</p>
             </div>
             <div class="col-md-4">
 
                 <h3>Mars Facts</h3>
-                <div>{{ mars.mars_html|safe }}</div>
+                <div>{{ mars.html_tables|safe }}</div>
             </div>
         </div>
 
